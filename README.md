@@ -1,8 +1,8 @@
-# Dual Path Attribution: Efficient Attribution for SwiGLU-Transformers through Layer-Wise Target Propagation
+# Layer-wise Target Propagation: Efficient Component Attribution through Target Centric Propagation
 
 > Publication link: https://arxiv.org/abs/2603.19742
 
-This repository contains the official code accompanying the paper **Dual Path Attribution (DPA): Efficient Attribution for SwiGLU-Transformers through Layer-Wise Target Propagation**.
+This repository contains the official code accompanying the paper **Layer-wise Target Propagation: Efficient Component Attribution through Target Centric Propagation**.
 
 
 ![method diagram](./src/method-diagram.png)
@@ -10,16 +10,16 @@ This repository contains the official code accompanying the paper **Dual Path At
 
 Understanding which input tokens and internal model components are responsible for a transformer prediction is central to mechanistic interpretability. Existing approaches typically trade off faithfulness against computational cost: intervention-based methods are accurate but expensive, while cheaper approximations often miss important interactions or become noisy at scale.
 
-Dual Path Attribution (DPA) addresses this trade-off for decoder-only **SwiGLU transformers**. The method decomposes computation into two complementary routes:
+Layer-wise Target Propagation (LTP) addresses this trade-off for decoder-only **SwiGLU transformers**. The method decomposes computation into two complementary routes:
 
 - a **content path**, which tracks how information is carried through value and up projections,
 - a **control path**, which tracks how information is routed through attention and gating.
 
-Using this decomposition, DPA propagates a target-specific signal backward through the frozen network with one forward pass for activation caching and one top-down target propagation pass. This yields efficient **input attribution** and **dense component attribution** without requiring a separate counterfactual intervention for each token, head, or neuron.
+Using this decomposition, LTP propagates a target-specific signal backward through the frozen network with one forward pass for activation caching and one top-down target propagation pass. This yields efficient **input attribution** and **dense component attribution** without requiring a separate counterfactual intervention for each token, head, or neuron.
 
 The repository includes:
 
-- the core DPA tracing implementation,
+- the core LTP tracing implementation,
 - experiment drivers for attribution and ablation studies,
 - benchmark subsets used in the paper,
 - analysis notebooks for result aggregation and visualization.
@@ -118,7 +118,7 @@ python -m experiments.attribution.attribution_pipe \
   --model meta-llama/Llama-3.1-8B-Instruct \
   --batch_size 4 \
   --chunk_size 4 \
-  --methods dpa
+  --methods LTP
 ```
 
 The most important arguments are:
@@ -129,10 +129,10 @@ The most important arguments are:
 - `--methods`: one or more attribution methods
 - `--batch_size`: dataloader batch size
 - `--chunk_size`: chunk size for methods that operate in chunks
-- `--dpa_weights`: five weights in the order `q k v gate up`
+- `--LTP_weights`: five weights in the order `q k v gate up`
 - `--out_dir`: output root directory
 
-The attribution modules contain both DPA and the baseline methods used in the paper.
+The attribution modules contain both LTP and the baseline methods used in the paper.
 
 ### Ablation Runs
 
@@ -177,17 +177,17 @@ Before launching it, you will likely want to adjust:
 - chunk sizes
 - output directory settings
 
-The Python drivers default to `/mnt/dacslab/dpa/results`, so on a different machine it is usually preferable to override `--out_dir` explicitly.
+The Python drivers default to `/mnt/dacslab/LTP/results`, so on a different machine it is usually preferable to override `--out_dir` explicitly.
 
 ### Sensitivity Analysis
 
-Sensitivity experiments for the DPA weighting configuration are provided via:
+Sensitivity experiments for the LTP weighting configuration are provided via:
 
 ```bash
 bash experiments/scripts/run_sensitivity_anaysis.sh
 ```
 
-This script sweeps multiple DPA weight settings and evaluates both attribution quality and ablation behavior on `known_1000`.
+This script sweeps multiple LTP weight settings and evaluates both attribution quality and ablation behavior on `known_1000`.
 
 ## Output Files
 
@@ -219,7 +219,7 @@ This repository is organized as an experiment artifact rather than a standalone 
 The main code paths are:
 
 - `tracer/backend.py`: model-specific backend implementations for cached forward execution and target propagation
-- `tracer/tracer.py`: the core DPA tracing logic for input and component attribution
+- `tracer/tracer.py`: the core LTP tracing logic for input and component attribution
 - `experiments/attribution/`: attribution methods and the main experiment driver
 - `experiments/ablation/`: faithfulness evaluation through disruption and recovery experiments
 - `experiments/result_analysis/`: notebooks for exporting runtime statistics and plotting results
